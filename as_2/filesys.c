@@ -38,13 +38,23 @@ void myfputc(int b, MyFILE * stream)
 
 }
 
+int myfgetc(MyFILE * stream)
+{
+    if(virtualDisk[stream->blockno].data[stream->pos] == EOF)
+        return EOF;
+    else
+        return virtualDisk[stream->blockno].data[stream->pos];
+}
 
 void myfclose(MyFILE * stream)
 {
-    ///make sure that you have space to write the
+    ///make sure that you have space to write that EOF
     if(stream->pos != 0 )
-        writeblock(&stream->buffer.data+stream->pos,stream->blockno); ///ASSUME ENOUGH SPACE EXISTS
-    //free(stream);
+    {
+        stream->buffer.data[stream->pos] = EOF;
+    }
+    writeblock(&stream->buffer.data,stream->blockno); ///ASSUME ENOUGH SPACE EXISTS
+    free(stream);
 }
 
 
@@ -52,11 +62,26 @@ MyFILE * myfopen( const char * filename, const char * mode )
 {
     MyFILE * file;
     file = malloc( sizeof(MyFILE) ) ;
-
     int fblocks = (MAXBLOCKS / FATENTRYCOUNT );
-    if(mode == 'r'){
+    int file_exists = 0;
+    if(strcmp(mode,"r") == 0){
+
+
+        for(int i = 4; i < MAXBLOCKS; i++)
+        {
+            if(strcmp(virtualDisk[i].data, filename) == 0)
+            {
+                file_exists = 1;
+                file->blockno = i;
+                file->pos = strlen(virtualDisk[i].data) +1 ;    ///go over the null byte
+            }
+        }
+
+        if(file_exists == 0)
+            return NULL;
+    printf("\n\n\n Hey I am in reading \n\n\n");
     }
-    else if(mode == 'a'){
+    else if(strcmp(mode,"a") == 0 ){
     } else{
         //alocate memory for a file with malloc
 
@@ -71,7 +96,7 @@ MyFILE * myfopen( const char * filename, const char * mode )
 
         file->pos = strlen(filename)+1;
 
-        FAT[4] = ENDOFCHAIN;
+        FAT[file->blockno] = ENDOFCHAIN;
         copyFAT();
         writeblock(&file->buffer.data, file->blockno);
         }
