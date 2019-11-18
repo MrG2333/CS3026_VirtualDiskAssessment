@@ -2,9 +2,11 @@
 
 int main()
 {
+    char  data_filler = "ABCDEFGHIJKLMNOPQRSTUVWXZ";
     format();
     MyFILE * testingFile;
     testingFile = myfopen("file_tet.txt","w");
+
     myfputc('Z', testingFile);
     myfclose(testingFile);
 

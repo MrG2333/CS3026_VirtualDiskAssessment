@@ -72,8 +72,9 @@ int myfgetc(MyFILE * stream)
         return EOF;
     else
     {
-        stream->pos++;
+
         return virtualDisk[stream->blockno].data[stream->pos];
+        stream->pos++;
     }
 
 }
@@ -81,11 +82,12 @@ int myfgetc(MyFILE * stream)
 void myfclose(MyFILE * stream)
 {
     ///make sure that you have space to write that EOF
-    if(stream->pos != 0 )
+    if( strcmp(stream->file_name, virtualDisk[stream->blockno].data) == 0)
     {
-        stream->buffer.data[stream->pos] = EOF;
+        stream->buffer.data[stream->pos+1] = EOF;
+
+        writeblock(&stream->buffer.data,stream->blockno); ///ASSUME ENOUGH SPACE EXISTS
     }
-    writeblock(&stream->buffer.data,stream->blockno); ///ASSUME ENOUGH SPACE EXISTS
     free(stream);
 }
 
@@ -106,12 +108,13 @@ MyFILE * myfopen( const char * filename, const char * mode )
                 file_exists = 1;
                 file->blockno = i;
                 file->pos = strlen(virtualDisk[i].data) +1 ;    ///go over the null byte
+                strcpy(file->file_name, filename);
+                memcpy(file->buffer.data, virtualDisk[i].data,BLOCKSIZE-1);
             }
         }
 
         if(file_exists == 0)
             return NULL;
-    printf("\n\n\n Hey I am in reading \n\n\n");
     }
     else if(strcmp(mode,"a") == 0 ){
     } else{
@@ -126,6 +129,7 @@ MyFILE * myfopen( const char * filename, const char * mode )
         strcpy(file->buffer.data + file->pos,filename);
 
         file->pos = strlen(filename)+1;
+        strcpy(file->file_name, filename);
 
         FAT[file->blockno] = ENDOFCHAIN;
         copyFAT();
