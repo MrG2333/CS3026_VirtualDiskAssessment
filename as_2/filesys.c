@@ -43,7 +43,7 @@ void myfputc(int b, MyFILE * stream)
 
     unused_sector = retUnusedSector();
 
-    if(stream->pos + 1 == BLOCKSIZE)
+    if(stream->pos + 2 == BLOCKSIZE)    ///leave space for EOL and a EOF
     {
 
         FAT[stream->blockno] = unused_sector;
@@ -72,7 +72,6 @@ int myfgetc(MyFILE * stream)
         return EOF;
     else
     {
-
         return virtualDisk[stream->blockno].data[stream->pos];
         stream->pos++;
     }
@@ -81,13 +80,20 @@ int myfgetc(MyFILE * stream)
 
 void myfclose(MyFILE * stream)
 {
-    ///make sure that you have space to write that EOF
-    if( strcmp(stream->file_name, virtualDisk[stream->blockno].data) == 0)
-    {
-        stream->buffer.data[stream->pos+1] = EOF;
 
-        writeblock(&stream->buffer.data,stream->blockno); ///ASSUME ENOUGH SPACE EXISTS
-    }
+
+    printf("\n\nclose stream-> pos: %d\n\n", stream->pos);
+    for(int j = BLOCKSIZE-1; j>=0;j--)
+        if(stream->buffer.data[j] == 255)
+            break;
+        else
+        if(stream->buffer.data[j] != 0)
+            {
+                printf("DIfferent: %d", stream->buffer.data[j] );
+                stream->buffer.data[j+2] = -1;
+                break;
+            }
+    writeblock(&stream->buffer.data,stream->blockno); ///ASSUME ENOUGH SPACE EXISTS
     free(stream);
 }
 
@@ -107,10 +113,12 @@ MyFILE * myfopen( const char * filename, const char * mode )
             {
                 file_exists = 1;
                 file->blockno = i;
-                file->pos = strlen(virtualDisk[i].data) +1 ;    ///go over the null byte
                 strcpy(file->file_name, filename);
                 memcpy(file->buffer.data, virtualDisk[i].data,BLOCKSIZE-1);
+                file->pos = strlen(filename)+1;
+                break;
             }
+
         }
 
         if(file_exists == 0)
