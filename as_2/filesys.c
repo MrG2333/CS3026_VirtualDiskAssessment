@@ -88,10 +88,10 @@ int myfgetc(MyFILE * stream)
         {
             c_to_return =virtualDisk[stream->blockno].data[stream->pos];
             stream->pos++;
+            if(c_to_return == 255)
+                return -1;
             return c_to_return;
         }
-    else
-        return -1;
 }
 
 void myfclose(MyFILE * stream)

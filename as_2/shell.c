@@ -24,7 +24,6 @@ int main()
 
     for(int i = 0; i < (4*BLOCKSIZE);i++){
         myfputc(big_array[i], testingFile);
-
     }
     writedisk("virtualdiskC3_C1");
 
@@ -38,9 +37,11 @@ int main()
     int return_c;
 
     return_c = myfgetc(testingFile);
-    //printf("returned character : %c",return_c);
-    //return_c = myfgetc(testingFile);
-    //printf("returned character : %c",return_c);
+    while(return_c!=-1){
+            printf("%c",return_c);
+            return_c = myfgetc(testingFile);
+    }
+
 
     writedisk("virtualdiskC3_C1");
 
