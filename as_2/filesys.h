@@ -111,7 +111,7 @@ int myfgetc(MyFILE * stream) ;
 int retUnusedSector();
 int file_location(const char * filename);
 void mymkdir( char *path);
-void mylistdir(char * path);
+char ** mylistdir(char * path);
 
 #endif
 

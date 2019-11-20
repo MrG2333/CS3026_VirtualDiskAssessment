@@ -324,7 +324,7 @@ void format ( )
 
 }
 
-void mylistdir(char * path)
+char ** mylistdir(char * path)
 {
     /// assume absolute
     diskblock_t block_directory;
@@ -334,26 +334,41 @@ void mylistdir(char * path)
 
 
     char path_tokenize[strlen(path)];
+
+
     strcpy(path_tokenize,path);
+
     char* path_dir = strtok(path_tokenize, "/");
 
     while (path_dir != NULL) {
 
         for(int i = 0 ;i <=DIRENTRYCOUNT;i++)
         {
-            if(strcmp(block_directory.dir.entrylist[i].name,path_dir ))
+            if(strcmp(block_directory.dir.entrylist[i].name,path_dir )==0)
             {
+
+
                 block_directory.dir = virtualDisk[block_directory.dir.entrylist[i].firstblock].dir;
                 break;
             }
         }
         path_dir = strtok(NULL, "/");
     }
-    for(int i = 0; i< DIRENTRYCOUNT;i++)
+
+
+    char ** ptr_ptr_file_list = (char * ) malloc(sizeof(char) * DIRENTRYCOUNT);
+
+         for(int i = 0; i< DIRENTRYCOUNT;i++)
     {
-        if(strcmp(block_directory.dir.entrylist[i].name,"") != 0)
-            printf("files in list: %s",block_directory.dir.entrylist[i].name);
+        if(strlen(block_directory.dir.entrylist[i].name) > 0)
+            {
+            //printf("files in list: %s",block_directory.dir.entrylist[i].name);
+            ptr_ptr_file_list[i] = &block_directory.dir.entrylist[i].name;
+            }
+
+
     }
+    return ptr_ptr_file_list;
 
 }
 
@@ -371,11 +386,10 @@ void mymkdir(char * path)
     currentDirIndex = rootDirIndex;
     block_directory.dir = virtualDisk[currentDirIndex].dir;
 
-    char* path_dir = strtok(path_tokenize, "/");
+    char* path_dir;
+    char* rest = path_tokenize;
 
-    while (path_dir != NULL) {
-
-
+    while ((path_dir = strtok_r(rest, "/", &rest))){
 
         unusedSector = retUnusedSector();
 
@@ -383,20 +397,20 @@ void mymkdir(char * path)
         copyFAT();
 
         entry_directory.firstblock = unusedSector;
+
         strcpy(entry_directory.name,path_dir);
         entry_directory.modtime = time(0);
         entry_directory.isdir = 1;
         entry_directory.unused = 1;
+
         block_directory.dir.isdir=1;
         block_directory.dir.entrylist[block_directory.dir.nextEntry] = entry_directory;
         block_directory.dir.nextEntry++;
-
         writeblock(&block_directory,currentDirIndex);
 
         currentDirIndex = unusedSector;
         block_directory.dir = virtualDisk[currentDirIndex].dir;
 
-        path_dir = strtok(NULL, "/");
     }
 }
 
