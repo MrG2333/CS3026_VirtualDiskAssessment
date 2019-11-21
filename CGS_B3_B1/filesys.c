@@ -40,8 +40,8 @@ void myfputc(int b, MyFILE * stream)
     short int unused_sector;
     int f_loc = file_in_directory(virtualDisk[rootDirIndex].dir, stream->name);
 
-    virtualDisk[currentDirIndex].dir.entrylist[f_loc].filelength++;
-    virtualDisk[currentDirIndex].dir.entrylist[f_loc].modtime = time(0);
+    virtualDisk[rootDirIndex].dir.entrylist[f_loc].filelength++;
+    virtualDisk[rootDirIndex].dir.entrylist[f_loc].modtime = time(0);
 
 
     if( strcmp(stream->mode,"w") == 0)
@@ -382,6 +382,7 @@ char ** mylistdir(char * path)
         }
 
     }
+
 
     char ** ptr_ptr_file_list = (char * ) malloc(sizeof(char) * DIRENTRYCOUNT);
 
